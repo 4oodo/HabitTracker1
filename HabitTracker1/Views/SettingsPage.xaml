@@ -1,0 +1,87 @@
+<Page x:Class="HabitTracker1.Views.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Параметры"
+      Background="#F5F5F5">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Параметры" 
+                   FontSize="20" 
+                   FontWeight="Bold" 
+                   Foreground="#2C3E50"
+                   Margin="0,0,0,20"/>
+
+        <!-- Тема оформления -->
+        <Border Grid.Row="1" Background="White" Padding="20" CornerRadius="5" BorderBrush="#BDC3C7" BorderThickness="1" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="Тема оформления" FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+                    <TextBlock Text="Выберите светлую или тёмную тему" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <ComboBox Grid.Column="1" Width="150" Padding="10,5" Background="White" VerticalAlignment="Center">
+                    <ComboBoxItem Content="Светлая" IsSelected="True"/>
+                    <ComboBoxItem Content="Тёмная"/>
+                </ComboBox>
+            </Grid>
+        </Border>
+
+        <!-- Уведомления -->
+        <Border Grid.Row="2" Background="White" Padding="20" CornerRadius="5" BorderBrush="#BDC3C7" BorderThickness="1" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="Уведомления" FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+                    <TextBlock Text="Получать напоминания о привычках" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="True"/>
+            </Grid>
+        </Border>
+
+        <!-- Об аккаунте -->
+        <Border Grid.Row="3" Background="White" Padding="20" CornerRadius="5" BorderBrush="#BDC3C7" BorderThickness="1" Margin="0,0,0,10">
+            <StackPanel>
+                <TextBlock Text="Об аккаунте" FontSize="14" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                <TextBlock x:Name="AccountInfoTextBlock" 
+                           Text="Пользователь: имя" 
+                           FontSize="12" 
+                           Foreground="#7F8C8D"/>
+                <Button Content="Изменить пароль" 
+                        Background="#3498DB" 
+                        Foreground="White" 
+                        Padding="10,5" 
+                        FontSize="11"
+                        Margin="0,10,0,0"
+                        Cursor="Hand"
+                        Width="120"
+                        HorizontalAlignment="Left"/>
+                <Button Content="Удалить аккаунт" 
+                        Background="#E74C3C" 
+                        Foreground="White" 
+                        Padding="10,5" 
+                        FontSize="11"
+                        Margin="0,5,0,0"
+                        Cursor="Hand"
+                        Width="120"
+                        HorizontalAlignment="Left"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>
