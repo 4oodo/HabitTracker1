@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\NullToVisibilityConverter.cs" />
     <Compile Include="Data\DatabaseConnection.cs" />
     <Compile Include="Services\AuthenticationService.cs" />
     <Compile Include="Services\CategoryService.cs" />

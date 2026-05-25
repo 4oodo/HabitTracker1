@@ -38,8 +38,8 @@ namespace HabitTracker1.Services
             try
             {
                 string passwordHash = HashPassword(password);
-                string query = @"INSERT INTO Users (Username, PasswordHash, Email, CreatedAt, IsActive) 
-                               VALUES (@Username, @PasswordHash, @Email, @CreatedAt, 1);
+                string query = @"INSERT INTO Users (Username, PasswordHash, Email, CreatedDate) 
+                               VALUES (@Username, @PasswordHash, @Email, @CreatedDate);
                                SELECT CAST(SCOPE_IDENTITY() as int)";
 
                 SqlParameter[] parameters = new[]
@@ -47,7 +47,7 @@ namespace HabitTracker1.Services
                     new SqlParameter("@Username", username),
                     new SqlParameter("@PasswordHash", passwordHash),
                     new SqlParameter("@Email", email ?? (object)DBNull.Value),
-                    new SqlParameter("@CreatedAt", DateTime.Now)
+                    new SqlParameter("@CreatedDate", DateTime.Now)
                 };
 
                 object result = _dbConnection.ExecuteScalar(query, parameters);
@@ -73,7 +73,7 @@ namespace HabitTracker1.Services
         {
             try
             {
-                string query = @"SELECT Id, Username, PasswordHash, Email, CreatedAt, IsActive 
+                string query = @"SELECT UserId as Id, Username, PasswordHash, Email, CreatedDate as CreatedAt 
                                FROM Users WHERE Username = @Username";
 
                 SqlParameter[] parameters = new[] { new SqlParameter("@Username", username) };
@@ -95,7 +95,7 @@ namespace HabitTracker1.Services
                     PasswordHash = storedHash,
                     Email = row["Email"] == DBNull.Value ? null : row["Email"].ToString(),
                     CreatedAt = Convert.ToDateTime(row["CreatedAt"]),
-                    IsActive = Convert.ToBoolean(row["IsActive"])
+                    IsActive = true
                 };
 
                 return _currentUser;

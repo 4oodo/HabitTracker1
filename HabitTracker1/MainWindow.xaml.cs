@@ -31,24 +31,33 @@ namespace HabitTracker1
 
         private void ShowLoginWindow()
         {
+            System.Diagnostics.Debug.WriteLine("ShowLoginWindow: начало");
             LoginWindow loginWindow = new LoginWindow();
             if (loginWindow.ShowDialog() == true)
             {
                 _currentUser = loginWindow.CurrentUser;
+                System.Diagnostics.Debug.WriteLine($"ShowLoginWindow: пользователь залогинен: {_currentUser?.Username ?? "NULL"}");
                 if (_currentUser != null)
                 {
                     InitializeMainWindow();
                     this.Show();
+                    System.Diagnostics.Debug.WriteLine($"ShowLoginWindow: главное окно показано");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ShowLoginWindow: _currentUser is still NULL после входа!");
                 }
             }
             else
             {
+                System.Diagnostics.Debug.WriteLine("ShowLoginWindow: вход отменён");
                 this.Close();
             }
         }
 
         private void InitializeMainWindow()
         {
+            System.Diagnostics.Debug.WriteLine($"InitializeMainWindow: _currentUser = {_currentUser?.Username ?? "NULL"} (ID: {_currentUser?.Id.ToString() ?? "?"})");
             UserGreeting.Text = $"Добро пожаловать, {_currentUser.Username}!";
 
             _habitViewModel = new HabitViewModel();
@@ -64,6 +73,7 @@ namespace HabitTracker1
 
         private void StatisticsButton_Click(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"StatisticsButton_Click: _currentUser = {_currentUser?.Username ?? "NULL"}");
             ContentFrame.Navigate(new StatisticsPage(_currentUser));
         }
 

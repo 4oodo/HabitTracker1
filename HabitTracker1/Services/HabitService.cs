@@ -35,23 +35,36 @@ namespace HabitTracker1.Services
 
             try
             {
-                string whereClause = "WHERE h.UserId = @UserId AND h.DeletedAt IS NULL";
+                string whereClause = "WHERE h.UserId = @UserId AND h.DeletedDate IS NULL";
                 if (!includeInactive)
                     whereClause += " AND h.IsActive = 1";
 
-                string query = $@"SELECT h.Id, h.Title, h.Description, h.UserId, h.CategoryId, h.Frequency,
-                               h.FrequencyDays, h.Unit, h.TargetValue, h.ReminderTime, h.ReminderEnabled, h.IsActive,
-                               h.CreatedAt, h.DeletedAt, c.Name as CategoryName
+                string query = $@"SELECT h.HabitId as Id, h.Name as Title, h.Description, h.UserId, h.CategoryId, h.Frequency,
+                               h.FrequencyDays, h.Unit, h.TargetValue, h.ReminderTime, h.IsActive,
+                               h.CreatedDate as CreatedAt, h.DeletedDate as DeletedAt, c.Name as CategoryName
                                FROM Habits h
-                               LEFT JOIN Categories c ON h.CategoryId = c.Id
+                               LEFT JOIN Categories c ON h.CategoryId = c.CategoryId
                                {whereClause}
-                               ORDER BY h.Title";
+                               ORDER BY h.Name";
 
                 SqlParameter[] parameters = new[] { new SqlParameter("@UserId", userId) };
                 DataTable dt = _dbConnection.ExecuteQuery(query, parameters);
 
+                if (dt == null || dt.Rows.Count == 0)
+                    return habits;
+
                 foreach (DataRow row in dt.Rows)
                 {
+                    TimeSpan? reminderTime = null;
+                    if (row["ReminderTime"] != DBNull.Value)
+                    {
+                        object timeValue = row["ReminderTime"];
+                        if (timeValue is TimeSpan)
+                            reminderTime = (TimeSpan)timeValue;
+                        else
+                            reminderTime = TimeSpan.Parse(timeValue.ToString());
+                    }
+
                     var habit = new Habit
                     {
                         Id = Convert.ToInt32(row["Id"]),
@@ -63,8 +76,8 @@ namespace HabitTracker1.Services
                         FrequencyDays = Convert.ToInt32(row["FrequencyDays"]),
                         Unit = row["Unit"] == DBNull.Value ? null : row["Unit"].ToString(),
                         TargetValue = row["TargetValue"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(row["TargetValue"]),
-                        ReminderTime = row["ReminderTime"] == DBNull.Value ? (TimeSpan?)null : (TimeSpan)row["ReminderTime"],
-                        ReminderEnabled = Convert.ToBoolean(row["ReminderEnabled"]),
+                        ReminderTime = reminderTime,
+                        ReminderEnabled = false,
                         IsActive = Convert.ToBoolean(row["IsActive"]),
                         CreatedAt = Convert.ToDateTime(row["CreatedAt"]),
                         DeletedAt = row["DeletedAt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["DeletedAt"]),
@@ -86,10 +99,10 @@ namespace HabitTracker1.Services
         {
             try
             {
-                string query = @"INSERT INTO Habits (Title, Description, UserId, CategoryId, Frequency, FrequencyDays,
-                               Unit, TargetValue, ReminderTime, ReminderEnabled, IsActive, CreatedAt)
+                string query = @"INSERT INTO Habits (Name, Description, UserId, CategoryId, Frequency, FrequencyDays,
+                               Unit, TargetValue, ReminderTime, IsActive, CreatedDate)
                                VALUES (@Title, @Description, @UserId, @CategoryId, @Frequency, @FrequencyDays,
-                               @Unit, @TargetValue, @ReminderTime, @ReminderEnabled, 1, @CreatedAt);
+                               @Unit, @TargetValue, @ReminderTime, 1, @CreatedDate);
                                SELECT CAST(SCOPE_IDENTITY() as int)";
 
                 SqlParameter[] parameters = new[]
@@ -102,9 +115,8 @@ namespace HabitTracker1.Services
                     new SqlParameter("@FrequencyDays", frequencyDays),
                     new SqlParameter("@Unit", unit ?? (object)DBNull.Value),
                     new SqlParameter("@TargetValue", targetValue ?? (object)DBNull.Value),
-                    new SqlParameter("@ReminderTime", reminderTime ?? (object)DBNull.Value),
-                    new SqlParameter("@ReminderEnabled", reminderEnabled),
-                    new SqlParameter("@CreatedAt", DateTime.Now)
+                    new SqlParameter("@ReminderTime", reminderTime.HasValue ? (object)reminderTime.Value : DBNull.Value),
+                    new SqlParameter("@CreatedDate", DateTime.Now)
                 };
 
                 object result = _dbConnection.ExecuteScalar(query, parameters);
@@ -138,10 +150,10 @@ namespace HabitTracker1.Services
         {
             try
             {
-                string query = @"UPDATE Habits SET Title = @Title, Description = @Description, CategoryId = @CategoryId, 
+                string query = @"UPDATE Habits SET Name = @Title, Description = @Description, CategoryId = @CategoryId, 
                                Frequency = @Frequency, FrequencyDays = @FrequencyDays, Unit = @Unit,
-                               TargetValue = @TargetValue, ReminderTime = @ReminderTime, ReminderEnabled = @ReminderEnabled
-                               WHERE Id = @Id";
+                               TargetValue = @TargetValue, ReminderTime = @ReminderTime
+                               WHERE HabitId = @Id";
 
                 SqlParameter[] parameters = new[]
                 {
@@ -152,8 +164,7 @@ namespace HabitTracker1.Services
                     new SqlParameter("@FrequencyDays", frequencyDays),
                     new SqlParameter("@Unit", unit ?? (object)DBNull.Value),
                     new SqlParameter("@TargetValue", targetValue ?? (object)DBNull.Value),
-                    new SqlParameter("@ReminderTime", reminderTime ?? (object)DBNull.Value),
-                    new SqlParameter("@ReminderEnabled", reminderEnabled),
+                    new SqlParameter("@ReminderTime", reminderTime.HasValue ? (object)reminderTime.Value : DBNull.Value),
                     new SqlParameter("@Id", habitId)
                 };
 
@@ -169,10 +180,10 @@ namespace HabitTracker1.Services
         {
             try
             {
-                string query = "UPDATE Habits SET DeletedAt = @DeletedAt, IsActive = 0 WHERE Id = @Id";
+                string query = "UPDATE Habits SET DeletedDate = @DeletedDate, IsActive = 0 WHERE HabitId = @Id";
                 SqlParameter[] parameters = new[]
                 {
-                    new SqlParameter("@DeletedAt", DateTime.Now),
+                    new SqlParameter("@DeletedDate", DateTime.Now),
                     new SqlParameter("@Id", habitId)
                 };
                 _dbConnection.ExecuteCommand(query, parameters);
@@ -187,17 +198,27 @@ namespace HabitTracker1.Services
         {
             try
             {
-                string query = @"SELECT Id, Title, Description, UserId, CategoryId, Frequency,
-                               FrequencyDays, Unit, TargetValue, ReminderTime, ReminderEnabled, IsActive,
-                               CreatedAt, DeletedAt FROM Habits WHERE Id = @Id";
+                string query = @"SELECT HabitId as Id, Name as Title, Description, UserId, CategoryId, Frequency,
+                               FrequencyDays, Unit, TargetValue, ReminderTime, IsActive,
+                               CreatedDate as CreatedAt, DeletedDate as DeletedAt FROM Habits WHERE HabitId = @Id";
 
                 SqlParameter[] parameters = new[] { new SqlParameter("@Id", habitId) };
                 DataTable dt = _dbConnection.ExecuteQuery(query, parameters);
 
-                if (dt.Rows.Count == 0)
+                if (dt == null || dt.Rows.Count == 0)
                     return null;
 
                 DataRow row = dt.Rows[0];
+                TimeSpan? reminderTime = null;
+                if (row["ReminderTime"] != DBNull.Value)
+                {
+                    object timeValue = row["ReminderTime"];
+                    if (timeValue is TimeSpan)
+                        reminderTime = (TimeSpan)timeValue;
+                    else
+                        reminderTime = TimeSpan.Parse(timeValue.ToString());
+                }
+
                 return new Habit
                 {
                     Id = Convert.ToInt32(row["Id"]),
@@ -209,8 +230,8 @@ namespace HabitTracker1.Services
                     FrequencyDays = Convert.ToInt32(row["FrequencyDays"]),
                     Unit = row["Unit"] == DBNull.Value ? null : row["Unit"].ToString(),
                     TargetValue = row["TargetValue"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(row["TargetValue"]),
-                    ReminderTime = row["ReminderTime"] == DBNull.Value ? (TimeSpan?)null : (TimeSpan)row["ReminderTime"],
-                    ReminderEnabled = Convert.ToBoolean(row["ReminderEnabled"]),
+                    ReminderTime = reminderTime,
+                    ReminderEnabled = false,
                     IsActive = Convert.ToBoolean(row["IsActive"]),
                     CreatedAt = Convert.ToDateTime(row["CreatedAt"]),
                     DeletedAt = row["DeletedAt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["DeletedAt"])
@@ -234,51 +255,62 @@ namespace HabitTracker1.Services
                     throw new Exception("Можно отметить выполнение только за последние 7 дней.");
 
                 // Проверяем наличие записи за эту дату
-                string checkQuery = @"SELECT Id FROM HabitLogs 
-                                     WHERE HabitId = @HabitId AND CAST(Date as date) = CAST(@Date as date)";
+                string checkQuery = @"SELECT LogId FROM HabitLogs 
+                                     WHERE HabitId = @HabitId AND CAST(LogDate as date) = CAST(@Date as date)";
                 SqlParameter[] checkParams = new[]
                 {
                     new SqlParameter("@HabitId", habitId),
                     new SqlParameter("@Date", date.Date)
                 };
-                object existingLogId = _dbConnection.ExecuteScalar(checkQuery, checkParams);
 
-                if (existingLogId != null)
+                try
                 {
-                    // Обновляем существующую запись
-                    string updateQuery = @"UPDATE HabitLogs SET IsCompleted = @IsCompleted, Value = @Value, Notes = @Notes, ModifiedAt = @ModifiedAt
-                                          WHERE Id = @Id";
-                    SqlParameter[] updateParams = new[]
+                    object existingLogId = _dbConnection.ExecuteScalar(checkQuery, checkParams);
+
+                    if (existingLogId != null && existingLogId != DBNull.Value)
                     {
-                        new SqlParameter("@IsCompleted", isCompleted),
-                        new SqlParameter("@Value", value ?? (object)DBNull.Value),
-                        new SqlParameter("@Notes", note ?? (object)DBNull.Value),
-                        new SqlParameter("@ModifiedAt", DateTime.Now),
-                        new SqlParameter("@Id", Convert.ToInt32(existingLogId))
-                    };
-                    _dbConnection.ExecuteCommand(updateQuery, updateParams);
+                        // Обновляем существующую запись
+                        string updateQuery = @"UPDATE HabitLogs SET IsCompleted = @IsCompleted, Value = @Value, Note = @Note
+                                              WHERE LogId = @Id";
+                        SqlParameter[] updateParams = new[]
+                        {
+                            new SqlParameter("@IsCompleted", isCompleted),
+                            new SqlParameter("@Value", value ?? (object)DBNull.Value),
+                            new SqlParameter("@Note", note ?? (object)DBNull.Value),
+                            new SqlParameter("@Id", Convert.ToInt32(existingLogId))
+                        };
+                        _dbConnection.ExecuteCommand(updateQuery, updateParams);
+                    }
+                    else
+                    {
+                        // Создаём новую запись
+                        string insertQuery = @"INSERT INTO HabitLogs (HabitId, UserId, LogDate, IsCompleted, Value, Note, CreatedDate)
+                                              VALUES (@HabitId, @UserId, @Date, @IsCompleted, @Value, @Note, @CreatedDate)";
+                        SqlParameter[] insertParams = new[]
+                        {
+                            new SqlParameter("@HabitId", habitId),
+                            new SqlParameter("@UserId", habit.UserId),
+                            new SqlParameter("@Date", date.Date),
+                            new SqlParameter("@IsCompleted", isCompleted),
+                            new SqlParameter("@Value", value ?? (object)DBNull.Value),
+                            new SqlParameter("@Note", note ?? (object)DBNull.Value),
+                            new SqlParameter("@CreatedDate", DateTime.Now)
+                        };
+                        _dbConnection.ExecuteCommand(insertQuery, insertParams);
+                    }
                 }
-                else
+                catch (Exception dbEx)
                 {
-                    // Создаём новую запись
-                    string insertQuery = @"INSERT INTO HabitLogs (HabitId, UserId, Date, IsCompleted, Value, Notes, CreatedAt)
-                                          VALUES (@HabitId, @UserId, @Date, @IsCompleted, @Value, @Notes, @CreatedAt)";
-                    SqlParameter[] insertParams = new[]
-                    {
-                        new SqlParameter("@HabitId", habitId),
-                        new SqlParameter("@UserId", habit.UserId),
-                        new SqlParameter("@Date", date.Date),
-                        new SqlParameter("@IsCompleted", isCompleted),
-                        new SqlParameter("@Value", value ?? (object)DBNull.Value),
-                        new SqlParameter("@Notes", note ?? (object)DBNull.Value),
-                        new SqlParameter("@CreatedAt", DateTime.Now)
-                    };
-                    _dbConnection.ExecuteCommand(insertQuery, insertParams);
+                    throw new Exception($"Ошибка при работе с базой данных: {dbEx.Message}", dbEx);
                 }
             }
             catch (SqlException ex)
             {
-                throw new Exception($"Ошибка при логировании привычки: {ex.Message}");
+                throw new Exception($"Ошибка при логировании привычки (SQL): {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка при логировании привычки: {ex.Message}", ex);
             }
         }
 
@@ -288,10 +320,10 @@ namespace HabitTracker1.Services
 
             try
             {
-                string query = @"SELECT Id, HabitId, UserId, Date, IsCompleted, Value, Notes, CreatedAt, ModifiedAt
+                string query = @"SELECT LogId as Id, HabitId, UserId, LogDate as Date, IsCompleted, Value, Note, CreatedDate as CreatedAt
                                FROM HabitLogs 
-                               WHERE HabitId = @HabitId AND Date >= @StartDate AND Date <= @EndDate
-                               ORDER BY Date ASC";
+                               WHERE HabitId = @HabitId AND LogDate >= @StartDate AND LogDate <= @EndDate
+                               ORDER BY LogDate ASC";
 
                 SqlParameter[] parameters = new[]
                 {
@@ -312,9 +344,9 @@ namespace HabitTracker1.Services
                         Date = Convert.ToDateTime(row["Date"]),
                         IsCompleted = Convert.ToBoolean(row["IsCompleted"]),
                         Value = row["Value"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(row["Value"]),
-                        Notes = row["Notes"] == DBNull.Value ? null : row["Notes"].ToString(),
+                        Notes = row["Note"] == DBNull.Value ? null : row["Note"].ToString(),
                         CreatedAt = Convert.ToDateTime(row["CreatedAt"]),
-                        ModifiedAt = row["ModifiedAt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["ModifiedAt"])
+                        ModifiedAt = null // ModifiedAt не существует в БД
                     });
                 }
             }

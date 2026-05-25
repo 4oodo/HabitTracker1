@@ -67,7 +67,7 @@ BEGIN
 		[Note] NVARCHAR(500),
 		[CreatedDate] DATETIME NOT NULL,
 		CONSTRAINT FK_HabitLogs_Habits FOREIGN KEY ([HabitId]) REFERENCES [dbo].[Habits]([HabitId]) ON DELETE CASCADE,
-		CONSTRAINT FK_HabitLogs_Users FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId]) ON DELETE CASCADE
+		CONSTRAINT FK_HabitLogs_Users FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId]) ON DELETE NO ACTION
 	)
 END
 

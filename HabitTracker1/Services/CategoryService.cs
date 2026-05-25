@@ -31,7 +31,7 @@ namespace HabitTracker1.Services
 
             try
             {
-                string query = @"SELECT Id, Name, Color, UserId, CreatedAt 
+                string query = @"SELECT CategoryId as Id, Name, UserId, CreatedDate as CreatedAt 
                                FROM Categories WHERE UserId = @UserId ORDER BY Name";
                 SqlParameter[] parameters = new[] { new SqlParameter("@UserId", userId) };
                 DataTable dt = _dbConnection.ExecuteQuery(query, parameters);
@@ -42,7 +42,7 @@ namespace HabitTracker1.Services
                     {
                         Id = Convert.ToInt32(row["Id"]),
                         Name = row["Name"].ToString(),
-                        Color = row["Color"] == DBNull.Value ? null : row["Color"].ToString(),
+                        Color = null, // Color поле не существует в БД
                         UserId = Convert.ToInt32(row["UserId"]),
                         CreatedAt = Convert.ToDateTime(row["CreatedAt"])
                     });
@@ -60,16 +60,15 @@ namespace HabitTracker1.Services
         {
             try
             {
-                string query = @"INSERT INTO Categories (Name, Color, UserId, CreatedAt) 
-                               VALUES (@Name, @Color, @UserId, @CreatedAt);
+                string query = @"INSERT INTO Categories (Name, UserId, CreatedDate) 
+                               VALUES (@Name, @UserId, @CreatedDate);
                                SELECT CAST(SCOPE_IDENTITY() as int)";
 
                 SqlParameter[] parameters = new[]
                 {
                     new SqlParameter("@Name", name),
-                    new SqlParameter("@Color", color ?? (object)DBNull.Value),
                     new SqlParameter("@UserId", userId),
-                    new SqlParameter("@CreatedAt", DateTime.Now)
+                    new SqlParameter("@CreatedDate", DateTime.Now)
                 };
 
                 object result = _dbConnection.ExecuteScalar(query, parameters);
@@ -79,7 +78,7 @@ namespace HabitTracker1.Services
                 {
                     Id = categoryId,
                     Name = name,
-                    Color = color,
+                    Color = null,
                     UserId = userId,
                     CreatedAt = DateTime.Now
                 };
@@ -94,11 +93,10 @@ namespace HabitTracker1.Services
         {
             try
             {
-                string query = "UPDATE Categories SET Name = @Name, Color = @Color WHERE Id = @Id";
+                string query = "UPDATE Categories SET Name = @Name WHERE CategoryId = @Id";
                 SqlParameter[] parameters = new[]
                 {
                     new SqlParameter("@Name", name),
-                    new SqlParameter("@Color", color ?? (object)DBNull.Value),
                     new SqlParameter("@Id", categoryId)
                 };
                 _dbConnection.ExecuteCommand(query, parameters);
@@ -115,7 +113,7 @@ namespace HabitTracker1.Services
             {
                 MoveHabitsToNone(categoryId);
 
-                string query = "DELETE FROM Categories WHERE Id = @Id";
+                string query = "DELETE FROM Categories WHERE CategoryId = @Id";
                 SqlParameter[] parameters = new[] { new SqlParameter("@Id", categoryId) };
                 _dbConnection.ExecuteCommand(query, parameters);
             }

@@ -14,9 +14,10 @@ namespace HabitTracker1
         {
             base.OnStartup(e);
 
-            // Создаём главное окно, но не показываем его
-            MainWindow = new MainWindow();
-            MainWindow.Show();
+            // Создаём главное окно вручную
+            // Оно НЕ будет показано до успешного входа пользователя
+            MainWindow mainWindow = new MainWindow();
+            // MainWindow.Show() будет вызван из MainWindow.xaml.cs после успешного входа
         }
     }
 }

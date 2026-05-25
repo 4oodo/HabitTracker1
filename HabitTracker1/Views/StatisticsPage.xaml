@@ -19,16 +19,16 @@
         <!-- Выбор периода -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
             <TextBlock Text="Период:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <ComboBox Width="150" Padding="10,5" Background="White">
-                <ComboBoxItem Content="День"/>
-                <ComboBoxItem Content="Неделя" IsSelected="True"/>
-                <ComboBoxItem Content="Месяц"/>
-                <ComboBoxItem Content="Год"/>
+            <ComboBox x:Name="PeriodComboBox" Width="150" Padding="10,5" Background="White" SelectionChanged="PeriodComboBox_SelectionChanged">
+                <ComboBoxItem Content="День" Tag="1"/>
+                <ComboBoxItem Content="Неделя" Tag="7" IsSelected="True"/>
+                <ComboBoxItem Content="Месяц" Tag="30"/>
+                <ComboBoxItem Content="Год" Tag="365"/>
             </ComboBox>
         </StackPanel>
 
         <!-- Статистика по привычкам -->
-        <ListBox Grid.Row="2" Background="#F5F5F5" BorderThickness="0">
+        <ListBox Grid.Row="2" x:Name="StatisticsListBox" Background="#F5F5F5" BorderThickness="0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Border Background="White" 
@@ -49,19 +49,19 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Column="0" 
-                                       Text="Привычка" 
+                                       Text="{Binding Name}" 
                                        FontSize="14" 
                                        FontWeight="Bold"
                                        Foreground="#2C3E50"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" 
-                                       Text="Успешность: 75%" 
+                                       Text="{Binding SuccessPercentage, StringFormat='Успешность: {0:F1}%'}" 
                                        FontSize="12"
                                        Foreground="#7F8C8D"
                                        Margin="0,10,0,0"/>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" 
-                                       Text="Серия: 5 дней" 
+                                       Text="{Binding CurrentStreak, StringFormat='Серия: {0} дней'}" 
                                        FontSize="12"
                                        Foreground="#7F8C8D"
                                        Margin="0,3,0,0"/>
@@ -70,7 +70,7 @@
                             <ProgressBar Grid.Column="1" 
                                          Grid.Row="0" 
                                          Grid.RowSpan="3"
-                                         Value="75" 
+                                         Value="{Binding SuccessPercentage}" 
                                          Maximum="100"
                                          Height="30"
                                          Margin="20,0,0,0"

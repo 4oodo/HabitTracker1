@@ -31,7 +31,7 @@ namespace HabitTracker1.Views
         {
             CategoryComboBox.ItemsSource = _viewModel.Categories;
             CategoryComboBox.DisplayMemberPath = "Name";
-            CategoryComboBox.SelectedValuePath = "CategoryId";
+            CategoryComboBox.SelectedValuePath = "Id";
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)

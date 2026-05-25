@@ -222,14 +222,14 @@ namespace HabitTracker1.ViewModels
             }
         }
 
-        public void CreateNewHabit(string name, int? categoryId, FrequencyType frequency, string unit = null, decimal? targetValue = null, TimeSpan? reminderTime = null)
+        public void CreateNewHabit(string name, int? categoryId, FrequencyType frequency, string unit = null, decimal? targetValue = null, TimeSpan? reminderTime = null, int frequencyDays = 1)
         {
             if (_currentUser == null || string.IsNullOrWhiteSpace(name))
                 return;
 
             try
             {
-                _habitService.CreateHabit(_currentUser.Id, name, categoryId, frequency, unit: unit, targetValue: targetValue, reminderTime: reminderTime);
+                _habitService.CreateHabit(_currentUser.Id, name, categoryId, frequency, frequencyDays, unit: unit, targetValue: targetValue, reminderTime: reminderTime);
                 LoadHabits();
             }
             catch (Exception ex)
@@ -251,6 +251,34 @@ namespace HabitTracker1.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Ошибка при создании категории: {ex.Message}");
+            }
+        }
+
+        public void ExecuteLogCompletion(int habitId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"ExecuteLogCompletion: habitId={habitId}, currentUser={_currentUser?.Id}");
+                _habitService.LogHabitCompletion(habitId, DateTime.Today, true);
+                System.Diagnostics.Debug.WriteLine($"ExecuteLogCompletion: успешно для привычки {habitId}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка при логировании привычки: {ex.Message}\n{ex.StackTrace}");
+                throw;
+            }
+        }
+
+        public void ExecuteDeleteHabit(int habitId)
+        {
+            try
+            {
+                _habitService.DeleteHabit(habitId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка при удалении привычки: {ex.Message}");
+                throw;
             }
         }
     }
