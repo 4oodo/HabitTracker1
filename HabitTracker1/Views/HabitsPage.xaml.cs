@@ -65,24 +65,6 @@ namespace HabitTracker1.Views
             }
         }
 
-        private void EditHabitButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Button button = sender as Button;
-                if (button?.DataContext is Habit habit)
-                {
-                    _viewModel.SelectedHabit = habit;
-                    // Здесь можно открыть окно редактирования
-                    MessageBox.Show("Функция редактирования находится в разработке", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка при редактировании привычки: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
         private void DeleteHabitButton_Click(object sender, RoutedEventArgs e)
         {
             try

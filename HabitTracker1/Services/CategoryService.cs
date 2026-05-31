@@ -60,6 +60,8 @@ namespace HabitTracker1.Services
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[CategoryService] CreateCategory: userId={userId}, name='{name}'");
+
                 string query = @"INSERT INTO Categories (Name, UserId, CreatedDate) 
                                VALUES (@Name, @UserId, @CreatedDate);
                                SELECT CAST(SCOPE_IDENTITY() as int)";
@@ -72,7 +74,14 @@ namespace HabitTracker1.Services
                 };
 
                 object result = _dbConnection.ExecuteScalar(query, parameters);
+
+                if (result == null)
+                {
+                    throw new Exception("Не удалось получить ID новой категории");
+                }
+
                 int categoryId = Convert.ToInt32(result);
+                System.Diagnostics.Debug.WriteLine($"[CategoryService] CreateCategory: успешно, categoryId={categoryId}");
 
                 return new Category
                 {
@@ -85,7 +94,13 @@ namespace HabitTracker1.Services
             }
             catch (SqlException ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[CategoryService] CreateCategory: SqlException - {ex.Message}");
                 throw new Exception($"Ошибка при создании категории: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CategoryService] CreateCategory: Exception - {ex.Message}");
+                throw;
             }
         }
 

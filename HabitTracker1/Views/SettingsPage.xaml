@@ -71,7 +71,8 @@
                         Margin="0,10,0,0"
                         Cursor="Hand"
                         Width="120"
-                        HorizontalAlignment="Left"/>
+                        HorizontalAlignment="Left"
+                        Click="ChangePasswordButton_Click"/>
                 <Button Content="Удалить аккаунт" 
                         Background="#E74C3C" 
                         Foreground="White" 
@@ -80,7 +81,8 @@
                         Margin="0,5,0,0"
                         Cursor="Hand"
                         Width="120"
-                        HorizontalAlignment="Left"/>
+                        HorizontalAlignment="Left"
+                        Click="DeleteAccountButton_Click"/>
             </StackPanel>
         </Border>
     </Grid>

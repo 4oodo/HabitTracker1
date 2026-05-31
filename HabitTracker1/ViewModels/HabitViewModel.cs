@@ -241,16 +241,56 @@ namespace HabitTracker1.ViewModels
         public void CreateNewCategory(string name)
         {
             if (_currentUser == null || string.IsNullOrWhiteSpace(name))
+            {
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] CreateNewCategory: _currentUser={_currentUser}, name='{name}'");
                 return;
+            }
 
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] CreateNewCategory: начало для пользователя {_currentUser.Id}");
                 _categoryService.CreateCategory(_currentUser.Id, name);
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] CreateNewCategory: категория создана, загружаем список");
                 LoadCategories();
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] CreateNewCategory: список загружен, всего категорий: {Categories?.Count}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка при создании категории: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] CreateNewCategory: Ошибка - {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] CreateNewCategory: StackTrace - {ex.StackTrace}");
+            }
+        }
+
+        public void UpdateCategory(int categoryId, string name)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] UpdateCategory: categoryId={categoryId}, name='{name}'");
+                _categoryService.UpdateCategory(categoryId, name);
+                LoadCategories();
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] UpdateCategory: завершено");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] UpdateCategory: Ошибка - {ex.Message}");
+                throw;
+            }
+        }
+
+        public void DeleteCategory(int categoryId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] DeleteCategory: categoryId={categoryId}");
+                _categoryService.DeleteCategory(categoryId);
+                LoadHabits();
+                LoadCategories();
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] DeleteCategory: завершено");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HabitViewModel] DeleteCategory: Ошибка - {ex.Message}");
+                throw;
             }
         }
 

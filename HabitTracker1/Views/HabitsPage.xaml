@@ -115,14 +115,6 @@
                                         Margin="10,0"
                                         Cursor="Hand"
                                         Click="MarkHabitButton_Click"/>
-                                <Button Content="Изменить" 
-                                        Background="#3498DB" 
-                                        Foreground="White" 
-                                        Padding="10,5" 
-                                        FontSize="11"
-                                        Margin="5,0"
-                                        Cursor="Hand"
-                                        Click="EditHabitButton_Click"/>
                                 <Button Content="Удалить" 
                                         Background="#E74C3C" 
                                         Foreground="White" 
